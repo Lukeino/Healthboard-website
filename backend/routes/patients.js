@@ -25,9 +25,15 @@ router.get('/', (req, res) => {
 
   db.all(query, params, (err, patients) => {
     if (err) {
-      return res.status(500).json({ message: 'Errore nel recupero pazienti' });
+      return res.status(500).json({ 
+        success: false,
+        message: 'Errore nel recupero pazienti' 
+      });
     }
-    res.json(patients);
+    res.json({
+      success: true,
+      data: patients
+    });
   });
 });
 
@@ -96,9 +102,8 @@ router.post('/', (req, res) => {
       function(err) {
         if (err) {
           return res.status(500).json({ message: 'Errore durante la creazione del paziente' });
-        }
-
-        res.status(201).json({
+        }        res.status(201).json({
+          success: true,
           message: 'Paziente creato con successo',
           patientId: this.lastID
         });

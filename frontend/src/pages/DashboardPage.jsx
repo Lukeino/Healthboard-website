@@ -16,39 +16,51 @@ const DashboardPage = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
-  const fetchDashboardData = async () => {
+  }, []);  const fetchDashboardData = async () => {
     try {
       setLoading(true);
       
       // Fetch patients for stats
       const patientsResponse = await api.patients.getAll();
-      const patients = patientsResponse.data;
+      const patients = Array.isArray(patientsResponse.data) ? patientsResponse.data : patientsResponse.data.data || [];
       
       // Fetch recent visits
       const visitsResponse = await api.visits.getAll();
-      const visits = visitsResponse.data;
+      const visits = Array.isArray(visitsResponse.data) ? visitsResponse.data : visitsResponse.data.data || [];
+      
+      // Fetch pending examinations count
+      const pendingExamsResponse = await api.examinations.getPendingCount();
+      const pendingExamsCount = pendingExamsResponse.data.count;
       
       // Calculate stats
       const today = new Date().toISOString().split('T')[0];
       const todayVisits = visits.filter(visit => 
-        visit.visit_date.startsWith(today)
+        visit.data_visita && visit.data_visita.startsWith(today)
       ).length;
       
-      // Get recent patients (last 5)
+      // Get recent patients (last 5) - sorted by creation date
       const sortedPatients = patients
+        .filter(patient => patient.created_at) // Filtra solo pazienti con data creazione
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         .slice(0, 5);
       
       // Get recent visits (last 5)
       const sortedVisits = visits
-        .sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date))
+        .filter(visit => visit.data_visita) // Filtra solo visite con data
+        .sort((a, b) => new Date(b.data_visita) - new Date(a.data_visita))
         .slice(0, 5);
+      
+      console.log('Dashboard data:', {
+        totalPatients: patients.length,
+        recentPatients: sortedPatients.length,
+        todayVisits,
+        pendingExamsCount
+      }); // Debug
       
       setStats({
         totalPatients: patients.length,
         todayVisits: todayVisits,
-        pendingExaminations: Math.floor(Math.random() * 10), // Placeholder
+        pendingExaminations: pendingExamsCount,
         monthlyGrowth: 15 // Placeholder
       });
       
@@ -128,12 +140,11 @@ const DashboardPage = () => {
             <Activity size={20} />
             Pazienti Recenti
           </h2>
-          <div className="recent-list">
-            {recentPatients.length > 0 ? (
+          <div className="recent-list">            {recentPatients.length > 0 ? (
               recentPatients.map(patient => (
                 <div key={patient.id} className="recent-item">
                   <div className="patient-info">
-                    <strong>{patient.first_name} {patient.last_name}</strong>
+                    <strong>{patient.nome} {patient.cognome}</strong>
                     <span className="patient-meta">
                       {patient.email} • {new Date(patient.created_at).toLocaleDateString('it-IT')}
                     </span>

@@ -75,6 +75,29 @@ export const visitsAPI = {
   }
 };
 
+// API per gli esami
+export const examinationsAPI = {
+  // Ottieni tutti gli esami
+  getAll: (params = {}) => {
+    return axios.get('/examinations', { params });
+  },
+
+  // Ottieni conteggio esami pendenti
+  getPendingCount: () => {
+    return axios.get('/examinations/pending');
+  },
+
+  // Crea nuovo esame
+  create: (examData) => {
+    return axios.post('/examinations', examData);
+  },
+
+  // Aggiorna esame
+  update: (id, examData) => {
+    return axios.put(`/examinations/${id}`, examData);
+  }
+};
+
 // API per l'autenticazione
 export const authAPI = {
   login: (credentials) => {
@@ -121,6 +144,7 @@ axios.interceptors.response.use(
 export const api = {
   patients: patientsAPI,
   visits: visitsAPI,
+  examinations: examinationsAPI,
   auth: authAPI
 };
 
