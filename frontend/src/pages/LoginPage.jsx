@@ -138,7 +138,8 @@ const LoginPage = () => {
           </p>
         </div>
       </div>
-
+      <div className="auth-background-image">
+      </div>
       <div className="auth-background">
         <div className="auth-bg-pattern"></div>
       </div>

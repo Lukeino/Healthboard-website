@@ -144,6 +144,24 @@
   text-align: center;
 }
 
+
+.auth-background-image {
+  position: absolute;
+  top: 80%;
+  left: 1%;
+  right: 2rem;
+  transform: translateY(-50%);
+  width: 500px;
+  height: 400px;
+  background-image: url("../assets/Medic.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 1;
+  z-index: 5;
+  pointer-events: none;
+}
+
 .auth-footer {
   text-align: center;
   margin-top: 2rem;
@@ -182,16 +200,6 @@
     radial-gradient(circle at 20% 50%, rgba(215, 100, 155, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(155, 124, 182, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 40% 80%, rgba(230, 126, 155, 0.1) 0%, transparent 50%);
-  animation: float 20s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(180deg);
-  }
 }
 
 /* Form Grid for Register */
