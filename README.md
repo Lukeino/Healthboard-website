@@ -6,7 +6,7 @@ Questo progetto è stato sviluppato come parte del mio portfolio personale, con 
 
 ---
 
-## 🚀 Features principali
+## Features principali
 
 - 👤 **Gestione dei pazienti**: aggiunta, modifica e rimozione di dati anagrafici e clinici.
 - 🗂️ **Visualizzazione ordinata**: schede paziente ben strutturate, facili da consultare.
@@ -20,7 +20,7 @@ Questo progetto è stato sviluppato come parte del mio portfolio personale, con 
 - **Frontend**: [React](https://reactjs.org/) + [Vite](https://vitejs.dev/)
 - **Linguaggio**: JavaScript (ES6+)
 - **Database**: [SQLite](https://www.sqlite.org/)
-- **Styling**: CSS3 (custom oppure con framework a tua scelta, specificare se usi Tailwind, Bootstrap, ecc.)
+- **Styling**: CSS3 
 - **Tooling**: Vite per un'esperienza di sviluppo veloce e moderna
 
 ---
