@@ -10,7 +10,10 @@ import {
   Mail,
   MapPin,
   User,
-  Trash2
+  Trash2,
+  ArrowUpDown,
+  Filter,
+  X
 } from 'lucide-react';
 import { api } from '../utils/api';
 import './PatientsPage.css';
@@ -108,9 +111,7 @@ const AddPatientModal = ({
                 required
               />
               {formErrors.codice_fiscale && <span className="error-text">{formErrors.codice_fiscale}</span>}
-            </div>
-
-            <div className="form-group">
+            </div>            <div className="form-group">
               <label htmlFor="data_nascita" className="form-label">
                 Data di Nascita *
               </label>
@@ -124,6 +125,21 @@ const AddPatientModal = ({
                 required
               />
               {formErrors.data_nascita && <span className="error-text">{formErrors.data_nascita}</span>}
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="citta_nascita" className="form-label">
+                Città di Nascita
+              </label>
+              <input
+                type="text"
+                id="citta_nascita"
+                name="citta_nascita"
+                value={formData.citta_nascita}
+                onChange={handleInputChange}
+                className="form-input"
+                placeholder="Città di nascita"
+              />
             </div>
 
             <div className="form-group">
@@ -299,19 +315,23 @@ const AddPatientModal = ({
 
 const PatientsPage = () => {
   const [patients, setPatients] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' o 'desc'
+  const [activeBirthDateFilter, setActiveBirthDateFilter] = useState(false);
+  const [activeBirthCityFilter, setActiveBirthCityFilter] = useState(false);
+  const [birthDateFilter, setBirthDateFilter] = useState('');
+  const [birthCityFilter, setBirthCityFilter] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [patientToDelete, setPatientToDelete] = useState(null);
-  const [formData, setFormData] = useState({
+  const [patientToDelete, setPatientToDelete] = useState(null);const [formData, setFormData] = useState({
     codice_fiscale: '',
     nome: '',
     cognome: '',
     data_nascita: '',
+    citta_nascita: '',
     sesso: 'M',
     telefono: '',
     email: '',
@@ -343,18 +363,67 @@ const PatientsPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-  const filteredPatients = patients.filter(patient =>
-    `${patient.nome} ${patient.cognome}`
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase()) ||
-    patient.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (patient.codice_fiscale && patient.codice_fiscale.toLowerCase().includes(searchTerm.toLowerCase()))
-  );  const handleViewDetails = (patient) => {
+  };  const filteredPatients = patients.filter(patient => {
+    // Filtro di ricerca testuale
+    const matchesSearch = 
+      `${patient.nome} ${patient.cognome}`
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      patient.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (patient.codice_fiscale && patient.codice_fiscale.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    // Filtro per data di nascita (solo se attivo)
+    const matchesBirthDate = !activeBirthDateFilter || !birthDateFilter || 
+      (patient.data_nascita && patient.data_nascita === birthDateFilter);
+    
+    // Filtro per città di nascita (solo se attivo)
+    const matchesBirthCity = !activeBirthCityFilter || !birthCityFilter ||
+      (patient.citta_nascita && patient.citta_nascita.toLowerCase().includes(birthCityFilter.toLowerCase()));
+    
+    return matchesSearch && matchesBirthDate && matchesBirthCity;
+  }).sort((a, b) => {
+    // Ordinamento alfabetico per nome completo
+    const nameA = `${a.cognome} ${a.nome}`.toLowerCase();
+    const nameB = `${b.cognome} ${b.nome}`.toLowerCase();
+    
+    if (sortOrder === 'asc') {
+      return nameA.localeCompare(nameB);
+    } else {
+      return nameB.localeCompare(nameA);
+    }
+  });  const handleViewDetails = (patient) => {
     setSelectedPatient(patient);
     setShowDetailsModal(true);
+  };  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
+  const activateBirthDateFilter = () => {
+    setActiveBirthDateFilter(true);
+  };
+
+  const activateBirthCityFilter = () => {
+    setActiveBirthCityFilter(true);
+  };
+
+  const clearBirthDateFilter = () => {
+    setBirthDateFilter('');
+    setActiveBirthDateFilter(false);
+  };
+
+  const clearBirthCityFilter = () => {
+    setBirthCityFilter('');
+    setActiveBirthCityFilter(false);
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm('');
+    setBirthDateFilter('');
+    setBirthCityFilter('');
+    setActiveBirthDateFilter(false);
+    setActiveBirthCityFilter(false);
+    setSortOrder('asc');
+  };
   const handleEditPatient = (patient) => {
     setSelectedPatient(patient);
     setFormData({
@@ -362,6 +431,7 @@ const PatientsPage = () => {
       nome: patient.nome || '',
       cognome: patient.cognome || '',
       data_nascita: patient.data_nascita || '',
+      citta_nascita: patient.citta_nascita || '',
       sesso: patient.sesso || 'M',
       telefono: patient.telefono || '',
       email: patient.email || '',
@@ -481,14 +551,13 @@ const PatientsPage = () => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const resetForm = () => {
+  };  const resetForm = () => {
     setFormData({
       codice_fiscale: '',
       nome: '',
       cognome: '',
       data_nascita: '',
+      citta_nascita: '',
       sesso: 'M',
       telefono: '',
       email: '',
@@ -527,34 +596,25 @@ const PatientsPage = () => {
           >
             <Edit size={18} />
           </button>          <button 
-            className="btn-icon btn-danger"
+            className="btn-icon"
             onClick={() => handleDeletePatient(patient)}
             title="Elimina paziente"
           >
             <Trash2 size={18} />
           </button>
         </div>
-      </div>
-        <div className="patient-details">
+      </div>      <div className="patient-details">
+        <div className="patient-detail">
+          <Phone size={16} />
+          <span>Telefono: {patient.telefono || '-'}</span>
+        </div>
         <div className="patient-detail">
           <Mail size={16} />
-          <span>{patient.email || 'Email non specificata'}</span>
+          <span>Email: {patient.email || '-'}</span>
         </div>
-        {patient.telefono && (
-          <div className="patient-detail">
-            <Phone size={16} />
-            <span>{patient.telefono}</span>
-          </div>
-        )}
-        {patient.indirizzo && (
-          <div className="patient-detail">
-            <MapPin size={16} />
-            <span>{patient.indirizzo}</span>
-          </div>
-        )}
         <div className="patient-detail">
           <Calendar size={16} />
-          <span>Registrato: {new Date(patient.created_at).toLocaleDateString('it-IT')}</span>
+          <span>Data di nascita: {patient.data_nascita ? new Date(patient.data_nascita).toLocaleDateString('it-IT') : '-'}</span>
         </div>
       </div>
     </div>
@@ -584,6 +644,10 @@ const PatientsPage = () => {
                 <div className="detail-item">
                   <label>Data di Nascita:</label>
                   <span>{new Date(selectedPatient.data_nascita).toLocaleDateString('it-IT')}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Città di Nascita:</label>
+                  <span>{selectedPatient.citta_nascita || 'Non specificata'}</span>
                 </div>
                 <div className="detail-item">
                   <label>Sesso:</label>
@@ -744,18 +808,107 @@ const PatientsPage = () => {
           <Plus size={20} />
           Nuovo Paziente
         </button>
-      </div>
-
-      <div className="patients-controls">
-        <div className="search-box">
-          <Search size={20} />
-          <input
-            type="text"
-            placeholder="Cerca per nome, email o codice fiscale..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      </div>      <div className="patients-controls">
+        <div className="search-and-filters">
+          <div className="search-box">
+            <Search size={20} />
+            <input
+              type="text"
+              placeholder="Cerca per nome, email o codice fiscale..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>            <div className="filter-controls">
+            <button 
+              className={`btn-filter ${sortOrder === 'desc' ? 'active' : ''}`}
+              onClick={toggleSortOrder}
+              title={`Ordina ${sortOrder === 'asc' ? 'Z-A' : 'A-Z'}`}
+            >
+              <ArrowUpDown size={18} />
+              {sortOrder === 'asc' ? 'A-Z' : 'Z-A'}
+            </button>
+            
+            <div className="advanced-filters">
+              {/* Filtro Data di Nascita */}
+              {!activeBirthDateFilter ? (
+                <button 
+                  className="btn-add-filter"
+                  onClick={activateBirthDateFilter}
+                  title="Aggiungi filtro per data di nascita"
+                >
+                  <Plus size={16} />
+                  Data Nascita
+                </button>
+              ) : (
+                <div className="active-filter">
+                  <div className="date-filter">
+                    <Calendar size={16} />
+                    <input
+                      type="date"
+                      placeholder="Data di nascita"
+                      value={birthDateFilter}
+                      onChange={(e) => setBirthDateFilter(e.target.value)}
+                      className="date-filter-input"
+                      title="Filtra per data di nascita"
+                    />
+                    <button 
+                      className="btn-remove-filter"
+                      onClick={clearBirthDateFilter}
+                      title="Rimuovi filtro data di nascita"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Filtro Città di Nascita */}
+              {!activeBirthCityFilter ? (
+                <button 
+                  className="btn-add-filter"
+                  onClick={activateBirthCityFilter}
+                  title="Aggiungi filtro per città di nascita"
+                >
+                  <Plus size={16} />
+                  Città Nascita
+                </button>
+              ) : (
+                <div className="active-filter">
+                  <div className="city-filter">
+                    <MapPin size={16} />
+                    <input
+                      type="text"
+                      placeholder="Città di nascita..."
+                      value={birthCityFilter}
+                      onChange={(e) => setBirthCityFilter(e.target.value)}
+                      className="city-filter-input"
+                      title="Filtra per città di nascita"
+                    />
+                    <button 
+                      className="btn-remove-filter"
+                      onClick={clearBirthCityFilter}
+                      title="Rimuovi filtro città di nascita"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {(searchTerm || activeBirthDateFilter || activeBirthCityFilter || sortOrder === 'desc') && (
+              <button 
+                className="btn-clear-all"
+                onClick={clearAllFilters}
+                title="Rimuovi tutti i filtri"
+              >
+                <X size={18} />
+                Reset
+              </button>
+            )}
+          </div>
         </div>
+        
         <div className="patients-stats">
           <span className="stat">
             {filteredPatients.length} di {patients.length} pazienti

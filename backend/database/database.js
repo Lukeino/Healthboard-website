@@ -26,7 +26,6 @@ db.serialize(() => {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
-
   // Tabella pazienti
   db.run(`
     CREATE TABLE IF NOT EXISTS patients (
@@ -48,6 +47,15 @@ db.serialize(() => {
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Migrazione: Aggiungi colonna citta_nascita se non esiste
+  db.run(`ALTER TABLE patients ADD COLUMN citta_nascita TEXT`, (err) => {
+    if (err && !err.message.includes('duplicate column name')) {
+      console.error('Errore nell\'aggiungere colonna citta_nascita:', err.message);
+    } else if (!err) {
+      console.log('✅ Colonna citta_nascita aggiunta alla tabella patients');
+    }
+  });
 
   // Tabella visite mediche
   db.run(`

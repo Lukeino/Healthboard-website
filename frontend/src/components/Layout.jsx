@@ -1,7 +1,8 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  Heart, 
+  Activity, 
+  Heart,
   Users, 
   Calendar, 
   FileText, 
@@ -23,9 +24,8 @@ const Layout = () => {
     logout();
     navigate('/login');
   };
-
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: Heart },
+    { name: 'Dashboard', href: '/', icon: Activity },
     { name: 'Pazienti', href: '/patients', icon: Users },
     { name: 'Visite', href: '/visits', icon: Calendar },
     { name: 'Esami', href: '/examinations', icon: FileText },
@@ -41,8 +41,7 @@ const Layout = () => {
   return (
     <div className="layout">
       {/* Sidebar Desktop */}
-      <aside className="sidebar">
-        <div className="sidebar-header">
+      <aside className="sidebar">        <div className="sidebar-header">
           <div className="logo">
             <Heart className="logo-icon" />
             <span className="logo-text">Healthboard</span>
@@ -90,9 +89,7 @@ const Layout = () => {
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          
-          <div className="mobile-logo">
+          </button>          <div className="mobile-logo">
             <Heart className="logo-icon" />
             <span className="logo-text">Healthboard</span>
           </div>

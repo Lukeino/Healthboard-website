@@ -4,7 +4,26 @@ const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
 
-// Applica middleware di autenticazione a tutte le routes
+// Endpoint pubblico per dropdown (senza autenticazione)
+router.get('/dropdown', (req, res) => {
+  const query = 'SELECT id, nome, cognome, codice_fiscale FROM patients ORDER BY cognome, nome';
+  
+  db.all(query, [], (err, patients) => {
+    if (err) {
+      return res.status(500).json({ 
+        success: false,
+        message: 'Errore nel recupero pazienti per dropdown' 
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: patients
+    });
+  });
+});
+
+// Applica middleware di autenticazione a tutte le altre routes
 router.use(authMiddleware);
 
 // GET - Ottieni tutti i pazienti
@@ -61,6 +80,7 @@ router.post('/', (req, res) => {
     nome,
     cognome,
     data_nascita,
+    citta_nascita,
     sesso,
     telefono,
     email,
@@ -85,17 +105,15 @@ router.post('/', (req, res) => {
 
     if (existing) {
       return res.status(400).json({ message: 'Codice fiscale già esistente' });
-    }
-
-    // Inserisci nuovo paziente
+    }    // Inserisci nuovo paziente
     db.run(
       `INSERT INTO patients (
-        codice_fiscale, nome, cognome, data_nascita, sesso,
+        codice_fiscale, nome, cognome, data_nascita, citta_nascita, sesso,
         telefono, email, indirizzo, citta, cap, provincia,
         medico_curante, note_generali
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        codice_fiscale, nome, cognome, data_nascita, sesso,
+        codice_fiscale, nome, cognome, data_nascita, citta_nascita, sesso,
         telefono, email, indirizzo, citta, cap, provincia,
         medico_curante, note_generali
       ],
@@ -114,12 +132,12 @@ router.post('/', (req, res) => {
 
 // PUT - Aggiorna paziente
 router.put('/:id', (req, res) => {
-  const { id } = req.params;
-  const {
+  const { id } = req.params;  const {
     codice_fiscale,
     nome,
     cognome,
     data_nascita,
+    citta_nascita,
     sesso,
     telefono,
     email,
@@ -133,12 +151,12 @@ router.put('/:id', (req, res) => {
 
   db.run(
     `UPDATE patients SET 
-      codice_fiscale = ?, nome = ?, cognome = ?, data_nascita = ?, sesso = ?,
+      codice_fiscale = ?, nome = ?, cognome = ?, data_nascita = ?, citta_nascita = ?, sesso = ?,
       telefono = ?, email = ?, indirizzo = ?, citta = ?, cap = ?, provincia = ?,
       medico_curante = ?, note_generali = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?`,
     [
-      codice_fiscale, nome, cognome, data_nascita, sesso,
+      codice_fiscale, nome, cognome, data_nascita, citta_nascita, sesso,
       telefono, email, indirizzo, citta, cap, provincia,
       medico_curante, note_generali, id
     ],

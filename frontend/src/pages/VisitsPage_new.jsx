@@ -60,7 +60,8 @@ const VisitCard = ({ visit, patientsMap, onViewDetails, onEditVisit, onDeleteVis
           >
             <Eye size={16} />
             Dettagli
-          </button>          <button 
+          </button>
+          <button 
             className="btn-outline"
             onClick={() => onEditVisit(visit)}
           >
@@ -68,7 +69,7 @@ const VisitCard = ({ visit, patientsMap, onViewDetails, onEditVisit, onDeleteVis
             Modifica
           </button>
           <button 
-            className="btn-outline"
+            className="btn-danger"
             onClick={() => onDeleteVisit(visit)}
           >
             <Trash2 size={16} />
@@ -378,19 +379,21 @@ const VisitFormModal = ({
                 onChange={(e) => onFormChange('data_visita', e.target.value)}
                 required
               />
-            </div>            <div className="form-group">
+            </div>
+
+            <div className="form-group">
               <label>Tipo Visita *</label>
               <select
                 value={formData.tipo_visita}
                 onChange={(e) => onFormChange('tipo_visita', e.target.value)}
                 required
               >
-                <option key="empty" value="">Seleziona tipo</option>
-                <option key="controllo" value="Controllo">Controllo</option>
-                <option key="visita" value="Visita">Visita</option>
-                <option key="emergenza" value="Emergenza">Emergenza</option>
-                <option key="follow-up" value="Follow-up">Follow-up</option>
-                <option key="consultazione" value="Consultazione">Consultazione</option>
+                <option value="">Seleziona tipo</option>
+                <option value="Controllo">Controllo</option>
+                <option value="Visita">Visita</option>
+                <option value="Emergenza">Emergenza</option>
+                <option value="Follow-up">Follow-up</option>
+                <option value="Consultazione">Consultazione</option>
               </select>
             </div>
 
@@ -586,33 +589,15 @@ const VisitsPage = () => {
       terapia: '',
       note: ''
     });
-  };  const handleEditVisit = (visit) => {
-    console.log('handleEditVisit called with:', visit);
+  };
+
+  const handleEditVisit = (visit) => {
     setSelectedVisit(visit);
     setEditSelectedPatient(patientsMap[visit.patient_id] || null);
     
     // Format date for datetime-local input
-    // Handle different date formats that might come from the database
-    let formattedDate = '';
-    try {
-      let dateStr = visit.data_visita || visit.visit_date;
-      
-      // If the date string is missing seconds, add them
-      if (dateStr && dateStr.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)) {
-        dateStr += ':00';
-      }
-      
-      const visitDate = new Date(dateStr);
-      if (!isNaN(visitDate.getTime())) {
-        formattedDate = visitDate.toISOString().slice(0, 16);
-      } else {
-        console.warn('Invalid date format:', dateStr);
-        formattedDate = new Date().toISOString().slice(0, 16); // Default to current time
-      }
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      formattedDate = new Date().toISOString().slice(0, 16); // Default to current time
-    }
+    const visitDate = new Date(visit.visit_date);
+    const formattedDate = visitDate.toISOString().slice(0, 16);
     
     setEditFormData({
       patient_id: visit.patient_id,
@@ -625,7 +610,6 @@ const VisitsPage = () => {
       terapia: visit.terapia || '',
       note: visit.note || ''
     });
-    console.log('Setting showEditModal to true');
     setShowEditModal(true);
   };
 
@@ -797,13 +781,14 @@ const VisitsPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-          <div className="filter-controls">
+        
+        <div className="filter-controls">
           <select 
             value={filterType} 
             onChange={(e) => setFilterType(e.target.value)}
             className="filter-select"
           >
-            <option key="all" value="all">Tutti i Tipi</option>
+            <option value="all">Tutti i Tipi</option>
             {visitTypes.map(type => (
               <option key={type} value={type}>{type}</option>
             ))}
@@ -875,7 +860,9 @@ const VisitsPage = () => {
           onSubmit={handleCreateSubmit}
           onClose={() => setShowCreateModal(false)}
         />
-      )}      {showEditModal && (
+      )}
+      
+      {showEditModal && (
         <VisitFormModal 
           isEdit={true}
           formData={editFormData}

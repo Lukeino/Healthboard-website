@@ -11,6 +11,10 @@ export const patientsAPI = {
   getAll: (params = {}) => {
     return axios.get('/patients', { params });
   },
+  // Ottieni pazienti per dropdown (senza autenticazione)
+  getForDropdown: () => {
+    return axios.get('/patients-dropdown');
+  },
 
   // Ottieni paziente per ID
   getById: (id) => {

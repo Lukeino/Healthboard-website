@@ -26,8 +26,7 @@ const ExaminationsPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
-  const fetchData = async () => {
+  }, []);  const fetchData = async () => {
     try {
       setLoading(true);
       // Since we don't have examinations endpoint yet, we'll simulate data
@@ -36,20 +35,30 @@ const ExaminationsPage = () => {
         api.visits.getAll()
       ]);
       
-      setPatients(patientsRes.data);
-      setVisits(visitsRes.data);
+      const patientsData = Array.isArray(patientsRes.data) ? patientsRes.data : [];
+      const visitsData = Array.isArray(visitsRes.data) ? visitsRes.data : [];
+      
+      setPatients(patientsData);
+      setVisits(visitsData);
       
       // Simulate examinations data
-      const mockExaminations = generateMockExaminations(patientsRes.data, visitsRes.data);
+      const mockExaminations = generateMockExaminations(patientsData, visitsData);
       setExaminations(mockExaminations);
     } catch (error) {
       console.error('Error fetching data:', error);
+      setPatients([]);
+      setVisits([]);
+      setExaminations([]);
     } finally {
       setLoading(false);
     }
   };
-
   const generateMockExaminations = (patients, visits) => {
+    // Ensure patients and visits are arrays
+    if (!Array.isArray(patients) || !Array.isArray(visits)) {
+      return [];
+    }
+    
     const examTypes = [
       'Analisi del Sangue',
       'Radiografia',
@@ -76,20 +85,18 @@ const ExaminationsPage = () => {
       created_at: new Date(Date.now() - Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString(),
       updated_at: new Date().toISOString()
     }));
-  };
-
-  // Create maps for quick lookup
-  const patientsMap = patients.reduce((map, patient) => {
+  };  // Create maps for quick lookup
+  const patientsMap = Array.isArray(patients) ? patients.reduce((map, patient) => {
     map[patient.id] = patient;
     return map;
-  }, {});
+  }, {}) : {};
 
-  const visitsMap = visits.reduce((map, visit) => {
+  const visitsMap = Array.isArray(visits) ? visits.reduce((map, visit) => {
     map[visit.id] = visit;
     return map;
-  }, {});
+  }, {}) : {};
 
-  const filteredExaminations = examinations.filter(exam => {
+  const filteredExaminations = Array.isArray(examinations) ? examinations.filter(exam => {
     const patient = patientsMap[exam.patient_id];
     const patientName = patient ? `${patient.first_name} ${patient.last_name}` : '';
     
@@ -101,7 +108,7 @@ const ExaminationsPage = () => {
     const matchesFilter = filterStatus === 'all' || exam.status === filterStatus;
     
     return matchesSearch && matchesFilter;
-  });
+  }) : [];
 
   const handleViewDetails = (examination) => {
     setSelectedExamination(examination);
