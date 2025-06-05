@@ -11,7 +11,7 @@ Questo progetto è stato sviluppato come parte del mio portfolio personale, con 
 - 👤 **Gestione dei pazienti**: aggiunta, modifica e rimozione di dati anagrafici e clinici.
 - 🗂️ **Visualizzazione ordinata**: schede paziente ben strutturate, facili da consultare.
 - 🔒 **Persistenza dati locale** con **SQLite**, per simulare una gestione reale di database.
-- ⚡ **Interfaccia reattiva** grazie a React con Vite per build rapide e fluide.
+- ⚡ **Interfaccia reattiva e chiara** grazie all'uso di React e Vite è possibile realizzare un interfaccia reattiva ma anche chiara.
 
 ---
 
