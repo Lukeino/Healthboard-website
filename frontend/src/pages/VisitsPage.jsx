@@ -20,38 +20,36 @@ const VisitCard = ({ visit, patientsMap, onViewDetails, onEditVisit, onDeleteVis
   
   return (
     <div className="visit-card">
-      <div className="visit-header">
-        <div className="visit-type-badge" style={{ backgroundColor: getVisitTypeColor(visit.visit_type) }}>
+      <div className="visit-header">        <div className="visit-type-badge" style={{ backgroundColor: getVisitTypeColor(visit.tipo_visita || visit.visit_type) }}>
           <Activity size={16} />
-          {visit.visit_type}
-        </div>
-        <div className="visit-date">
+          {visit.tipo_visita || visit.visit_type}
+        </div><div className="visit-date">
           <Clock size={16} />
-          {formatDate(visit.visit_date)}
+          {formatDate(visit.data_visita || visit.visit_date)}
         </div>
-      </div>
-
-      <div className="visit-content">
-        <div className="patient-info">
-          <User size={18} />
-          <div>
-            <strong>
-              {patient ? `${patient.nome} ${patient.cognome}` : 'Paziente non trovato'}
-            </strong>
-            {patient && (
-              <span className="patient-details">
-                {patient.codice_fiscale} • {patient.telefono || 'N/A'}
-              </span>
-            )}
+      </div>      <div className="visit-content">
+        <div className="visit-card-details">
+          <div className="detail-row">
+            <strong>{patient ? `${patient.nome} ${patient.cognome}` : 'Paziente non trovato'}</strong>
+          </div>
+          
+          {patient && (
+            <div className="detail-row">
+              <span className="detail-label">CF:</span>
+              <span>{patient.codice_fiscale}</span>
+            </div>
+          )}
+          
+          <div className="detail-row">
+            <span className="detail-label">Motivo Visita:</span>
+            <span>{visit.motivo || '-'}</span>
+          </div>
+          
+          <div className="detail-row">
+            <span className="detail-label">Diagnosi:</span>
+            <span>{visit.diagnosi || '-'}</span>
           </div>
         </div>
-
-        {visit.notes && (
-          <div className="visit-notes">
-            <FileText size={16} />
-            <p>{visit.notes.length > 100 ? `${visit.notes.substring(0, 100)}...` : visit.notes}</p>
-          </div>
-        )}
 
         <div className="visit-actions">
           <button 
@@ -93,16 +91,15 @@ const VisitDetailsModal = ({ selectedVisit, patientsMap, onClose, getVisitTypeCo
         <div className="visit-full-details">
           <div className="details-section">
             <h3>Informazioni Visita</h3>
-            <div className="details-grid">
-              <div className="detail-item">
+            <div className="details-grid">              <div className="detail-item">
                 <label>Tipo Visita:</label>
-                <span className="visit-type-inline" style={{ color: getVisitTypeColor(selectedVisit.visit_type) }}>
-                  {selectedVisit.visit_type}
+                <span className="visit-type-inline" style={{ color: getVisitTypeColor(selectedVisit.tipo_visita || selectedVisit.visit_type) }}>
+                  {selectedVisit.tipo_visita || selectedVisit.visit_type}
                 </span>
               </div>
               <div className="detail-item">
                 <label>Data e Ora:</label>
-                <span>{formatDate(selectedVisit.visit_date)}</span>
+                <span>{formatDate(selectedVisit.data_visita || selectedVisit.visit_date)}</span>
               </div>
               <div className="detail-item">
                 <label>Motivo:</label>
@@ -291,9 +288,8 @@ const DeleteConfirmationModal = ({ visitToDelete, patientsMap, deleteLoading, on
             <div className="visit-summary">
               <p><strong>Paziente:</strong> {patientsMap[visitToDelete.patient_id] ? 
                 `${patientsMap[visitToDelete.patient_id].nome} ${patientsMap[visitToDelete.patient_id].cognome}` : 
-                'Paziente non trovato'}</p>
-              <p><strong>Data:</strong> {formatDate(visitToDelete.visit_date)}</p>
-              <p><strong>Tipo:</strong> {visitToDelete.visit_type}</p>
+                'Paziente non trovato'}</p>              <p><strong>Data:</strong> {formatDate(visitToDelete.data_visita || visitToDelete.visit_date)}</p>
+              <p><strong>Tipo:</strong> {visitToDelete.tipo_visita || visitToDelete.visit_type}</p>
             </div>
             <p className="warning-text">
               ⚠️ Questa azione non può essere annullata. Tutti i dati della visita verranno persi permanentemente.
@@ -551,17 +547,18 @@ const VisitsPage = () => {
     map[patient.id] = patient;
     return map;
   }, {}) : {};
-
   const filteredVisits = Array.isArray(visits) ? visits.filter(visit => {
     const patient = patientsMap[visit.patient_id];
     const patientName = patient ? `${patient.nome} ${patient.cognome}` : '';
+    const visitType = visit.tipo_visita || visit.visit_type || '';
     
     const matchesSearch = 
       patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      visit.visit_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (visit.notes && visit.notes.toLowerCase().includes(searchTerm.toLowerCase()));
+      visitType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (visit.notes && visit.notes.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (visit.motivo && visit.motivo.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    const matchesFilter = filterType === 'all' || visit.visit_type === filterType;
+    const matchesFilter = filterType === 'all' || visitType === filterType;
     
     return matchesSearch && matchesFilter;
   }) : [];
@@ -749,18 +746,29 @@ const VisitsPage = () => {
     };
     return colors[type] || '#6B7280';
   };
-
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('it-IT', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    if (!dateString) return 'Data non disponibile';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'Data non valida';
+      }
+      
+      return date.toLocaleDateString('it-IT', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Errore data';
+    }
   };
 
-  const visitTypes = Array.isArray(visits) ? [...new Set(visits.map(visit => visit.visit_type))] : [];
+  const visitTypes = Array.isArray(visits) ? [...new Set(visits.map(visit => visit.tipo_visita || visit.visit_type).filter(Boolean))] : [];
 
   if (loading) {
     return (
@@ -817,10 +825,9 @@ const VisitsPage = () => {
         </div>
       </div>
 
-      <div className="visits-grid">
-        {filteredVisits.length > 0 ? (
+      <div className="visits-grid">        {filteredVisits.length > 0 ? (
           filteredVisits
-            .sort((a, b) => new Date(b.visit_date) - new Date(a.visit_date))
+            .sort((a, b) => new Date(b.data_visita || b.visit_date) - new Date(a.data_visita || a.visit_date))
             .map(visit => (
               <VisitCard 
                 key={visit.id} 

@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, FileText, TrendingUp, Activity } from 'lucide-react';
+import { Users, Calendar, FileText, Activity } from 'lucide-react';
 import { api } from '../utils/api';
 import './DashboardPage.css';
 
-const DashboardPage = () => {
-  const [stats, setStats] = useState({
+const DashboardPage = () => {  const [stats, setStats] = useState({
     totalPatients: 0,
     todayVisits: 0,
-    pendingExaminations: 0,
-    monthlyGrowth: 0
+    pendingExaminations: 0
   });
   const [recentPatients, setRecentPatients] = useState([]);
   const [recentVisits, setRecentVisits] = useState([]);
@@ -27,6 +25,16 @@ const DashboardPage = () => {
       // Fetch recent visits
       const visitsResponse = await api.visits.getAll();
       const visits = Array.isArray(visitsResponse.data) ? visitsResponse.data : visitsResponse.data.data || [];
+        // Create patients map for quick lookup
+      const patientsMap = patients.reduce((map, patient) => {
+        // Try both string and number keys since IDs might come in different formats
+        map[patient.id] = patient;
+        map[String(patient.id)] = patient;
+        if (typeof patient.id === 'string') {
+          map[parseInt(patient.id)] = patient;
+        }
+        return map;
+      }, {});
       
       // Fetch pending examinations count
       const pendingExamsResponse = await api.examinations.getPendingCount();
@@ -42,26 +50,39 @@ const DashboardPage = () => {
       const sortedPatients = patients
         .filter(patient => patient.created_at) // Filtra solo pazienti con data creazione
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-        .slice(0, 5);
-      
-      // Get recent visits (last 5)
+        .slice(0, 5);      // Get recent visits (last 5) with patient information
       const sortedVisits = visits
-        .filter(visit => visit.data_visita) // Filtra solo visite con data
-        .sort((a, b) => new Date(b.data_visita) - new Date(a.data_visita))
-        .slice(0, 5);
-      
-      console.log('Dashboard data:', {
+        .filter(visit => (visit.data_visita || visit.visit_date)) // Prima filtra solo per data
+        .sort((a, b) => new Date(b.data_visita || b.visit_date) - new Date(a.data_visita || a.visit_date))
+        .slice(0, 5)        .map(visit => {
+          console.log('Processing visit:', visit.id, 'patient_id:', visit.patient_id, 'type:', typeof visit.patient_id);
+          
+          // Try to find patient with different ID formats
+          let patient = patientsMap[visit.patient_id] || 
+                       patientsMap[String(visit.patient_id)] || 
+                       patientsMap[parseInt(visit.patient_id)] || 
+                       null;
+          
+          console.log('Patient found:', !!patient, patient ? `${patient.nome} ${patient.cognome}` : 'none');
+          
+          return {
+            ...visit,
+            patient: patient
+          };
+        });
+        console.log('Dashboard data:', {
         totalPatients: patients.length,
         recentPatients: sortedPatients.length,
         todayVisits,
-        pendingExamsCount
+        pendingExamsCount,
+        visits: visits.slice(0, 3), // Log first 3 visits to see structure
+        patients: patients.slice(0, 3), // Log first 3 patients to see structure
+        patientsMap: Object.keys(patientsMap).slice(0, 5) // Log first 5 patient IDs
       }); // Debug
-      
-      setStats({
+        setStats({
         totalPatients: patients.length,
         todayVisits: todayVisits,
-        pendingExaminations: pendingExamsCount,
-        monthlyGrowth: 15 // Placeholder
+        pendingExaminations: pendingExamsCount
       });
       
       setRecentPatients(sortedPatients);
@@ -110,25 +131,13 @@ const DashboardPage = () => {
             <h3>{stats.todayVisits}</h3>
             <p>Visite Oggi</p>
           </div>
-        </div>
-
-        <div className="stat-card">
+        </div>        <div className="stat-card">
           <div className="stat-icon">
             <FileText size={24} />
           </div>
           <div className="stat-content">
             <h3>{stats.pendingExaminations}</h3>
             <p>Esami Pendenti</p>
-          </div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-icon">
-            <TrendingUp size={24} />
-          </div>
-          <div className="stat-content">
-            <h3>+{stats.monthlyGrowth}%</h3>
-            <p>Crescita Mensile</p>
           </div>
         </div>
       </div>
@@ -161,19 +170,26 @@ const DashboardPage = () => {
           <h2>
             <Calendar size={20} />
             Visite Recenti
-          </h2>
-          <div className="recent-list">
+          </h2>          <div className="recent-list">
             {recentVisits.length > 0 ? (
               recentVisits.map(visit => (
                 <div key={visit.id} className="recent-item">
                   <div className="visit-info">
-                    <strong>Visita #{visit.id}</strong>
-                    <span className="visit-meta">
-                      {visit.visit_type} • {new Date(visit.visit_date).toLocaleDateString('it-IT')}
-                    </span>
-                    {visit.notes && (
-                      <p className="visit-notes">{visit.notes.substring(0, 100)}...</p>
-                    )}
+                    <div className="visit-details">
+                      <strong>Paziente: {visit.patient ? `${visit.patient.nome} ${visit.patient.cognome}` : 'Paziente non trovato'}</strong>
+                      <span className="visit-meta">
+                        Data e Ora: {new Date(visit.data_visita || visit.visit_date).toLocaleString('it-IT', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                      <span className="visit-reason">
+                        Motivo visita: {visit.motivo || '-'}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))
