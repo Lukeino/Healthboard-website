@@ -1,4 +1,4 @@
-# 🩺 Healthboard
+# 💗 Healthboard
 
 **Healthboard** è un'applicazione web pensata per fungere da *fascicolo sanitario elettronico*. Permette di archiviare, visualizzare e gestire i dati dei pazienti in modo semplice e intuitivo.
 
