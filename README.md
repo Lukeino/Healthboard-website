@@ -37,4 +37,7 @@ npm install
 
 # Avvia il server di sviluppo
 npm run dev
+
+# Avvia il database nel backend
+npm start
 ```
