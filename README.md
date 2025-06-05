@@ -21,8 +21,6 @@ Questo progetto è stato sviluppato come parte del mio portfolio personale, con 
 - **Linguaggio**: JavaScript (ES6+)
 - **Database**: [SQLite](https://www.sqlite.org/)
 - **Styling**: CSS3 
-- **Tooling**: Vite per un'esperienza di sviluppo veloce e moderna
-
 ---
 
 ## 🧰 Come eseguire il progetto in locale
