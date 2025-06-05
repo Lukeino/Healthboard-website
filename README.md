@@ -11,8 +11,9 @@ Questo progetto è stato sviluppato come parte del mio portfolio personale, con 
 - 👤 **Gestione dei pazienti**: aggiunta, modifica e rimozione di dati anagrafici e clinici.
 - 🗂️ **Visualizzazione ordinata**: schede paziente ben strutturate, facili da consultare.
 - 🔒 **Persistenza dati locale** con **SQLite**, per simulare una gestione reale di database.
-- ⚡ **Interfaccia reattiva e chiara** grazie all'uso di React e Vite è possibile realizzare un interfaccia reattiva ma anche chiara.
-
+- ⚡ **Interfaccia reattiva e chiara** grazie all'uso di React e Vite è possibile realizzare un interfaccia reattiva ma anche chiara. 
+I medici ed infermieri potranno visualizzare la lista dei pazienti e recepire subito, per ogni paziente filtrato, i loro contatti e le loro generalità più importanti.
+Sarà inoltre possibile filtrare il database di pazienti in base al loro nome, cognome, data di nascita, CF, ecc... così da poter cercare velocemente ogni paziente.
 ---
 
 ## 🛠️ Tech stack
